@@ -1,22 +1,25 @@
-from face_detection import FACE
-from mask_rcnn import MASK_RCNN
+import time
+import cv2
+from motion_detection import detect_motion
 
-# Create face detection instance
-face = FACE()
-face.read_img('assets/img1.jpg')
-boxes, _ = face.detect()
 
-# Create mask-rcnn instance
-m = MASK_RCNN()
+if __name__ == "__main__":
+    cap = cv2.VideoCapture(0)
+    
+    while True:
+        motion = detect_motion(5, cap, show=True)
+        if motion is None:
+            break
+        else:
+            if len(motion) > 0:
+                print("Somebody moved!")
+                print(motion)
+            else:
+                print("Nobody moved")
+        
+        for i in range(5, -1, -1):
+            print(i)
+            time.sleep(1)
 
-# Read image and extract instance segmentation mask
-m.read_img('assets/img1.jpg')
-masks = m.get_mask()
-
-# Mask can be saved as an image
-m.save_mask('assets/mask.png')
-
-# Particular mask that contains given point coordinate can be extracted
-pt = (300, 30)
-m.find_containing_mask(pt)
-m.save_containing_face(pt, 'assets/containing_face.png')
+    cap.release()
+    cv2.destroyAllWindows()
