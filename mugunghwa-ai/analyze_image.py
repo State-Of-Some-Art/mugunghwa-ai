@@ -1,5 +1,5 @@
 from face_detection import FACE
-from mask_rcnn import MASK_RCNN
+from mask_rcnn_torch import Segmenter
 
 # Create face detection instance
 face = FACE()
@@ -7,7 +7,7 @@ face.read_img('assets/img1.jpg')
 boxes, _ = face.detect()
 
 # Create mask-rcnn instance
-m = MASK_RCNN()
+m = Segmenter()
 
 # Read image and extract instance segmentation mask
 m.read_img('assets/img1.jpg')
