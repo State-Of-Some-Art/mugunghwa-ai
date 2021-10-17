@@ -14,13 +14,14 @@ def calc_diff(src1, src2):
     _, thresh = cv2.threshold(frameDelta, 25, 255, cv2.THRESH_BINARY)
     return cv2.dilate(thresh, None, iterations=2)
 
-def detect_motion(duration: float, cap: cv2.VideoCapture, threshold: float = 8000, show: bool = False):
+def detect_motion(duration: float, cap: cv2.VideoCapture, img_size = (400, 400), threshold: float = 8000, show: bool = False):
     start_time = time.time()
     ret, bg_frame = cap.read()
-    bg_frame = smooth_frame(bg_frame)
+    bg_frame = cv2.resize(smooth_frame(bg_frame), img_size)
 
     while ret:
         ret, frame = cap.read()
+        frame = cv2.resize(frame, img_size)
         frame2 = smooth_frame(frame)
         diff = calc_diff(frame2, bg_frame)
 

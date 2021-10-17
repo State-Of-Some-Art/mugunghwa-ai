@@ -1,13 +1,15 @@
 import time
 import cv2
 from motion_detection import detect_motion
-from mask_rcnn import MASK_RCNN
+from mask_rcnn_torch import Segmenter
 from PIL import Image
 
 
 if __name__ == "__main__":
     cap = cv2.VideoCapture(0)
-    m = MASK_RCNN()
+    model = Segmenter()
+
+    print("Ready to play some game?")
     
     while True:
         pts, frame = detect_motion(5, cap, show=True)
@@ -16,14 +18,12 @@ if __name__ == "__main__":
         else:
             if len(pts) > 0:
                 print("Somebody moved!")
-                m.img = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
-                m.set_image_size(frame.shape[:2])
-                m.get_mask()
+                model.set_img(frame)
+                model.get_mask()
                 for pt in pts:
                     print(pt)
-                    face = m.find_containing_mask(pt)
+                    face = model.find_containing_face(pt)
                     face.show()
-
             else:
                 print("Nobody moved")
         

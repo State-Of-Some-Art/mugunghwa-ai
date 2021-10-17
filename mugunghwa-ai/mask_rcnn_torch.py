@@ -15,6 +15,12 @@ class Segmenter(object):
         if self.is_gpu:
             self.net.cuda()
     
+    def set_img(self, src, img_size: Tuple[int, int]=(400, 400)):
+        self.img = cv2.resize(cv2.cvtColor(src, cv2.COLOR_BGR2RGB), img_size)
+        self.img = torch.from_numpy(self.img.transpose(2, 0, 1)) / 255
+        if self.is_gpu:
+            self.img = self.img.cuda()
+
     def read_img(self, img_fp:str, img_size: Tuple[int, int]=(400, 400)):
         self.img = cv2.resize(cv2.cvtColor(cv2.imread(img_fp), cv2.COLOR_BGR2RGB), img_size)
         self.img = torch.from_numpy(self.img.transpose(2, 0, 1)) / 255
