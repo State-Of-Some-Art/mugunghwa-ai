@@ -15,8 +15,8 @@ class Segmenter(object):
             self.net.cuda()
     
     def read_img(self, img_fp:str, img_size: Tuple[int, int]=(400, 400)):
-        self.img = read_image(img_fp) / 255.0
-        self.img = torch.from_numpy(cv2.cvtColor(cv2.imread(img_fp), cv2.COLOR_BGR2RGB).transpose(2, 0, 1)) / 255
+        self.img = cv2.resize(cv2.cvtColor(cv2.imread(img_fp), cv2.COLOR_BGR2RGB), img_size)
+        self.img = torch.from_numpy(self.img.transpose(2, 0, 1)) / 255
         if self.is_gpu:
             self.img = self.img.cuda()
     
@@ -30,18 +30,15 @@ class Segmenter(object):
         person_mask = out['labels'] == 1
         self.scores = out['scores'][person_mask].cpu().detach().numpy()
         self.masks = out['masks'][person_mask].cpu().detach().numpy()[self.scores > 0.90]
-        print(self.masks.shape)
         return self.masks
     
     def save_mask(self):
         write_png((self.img.cpu().detach() * 255).type(torch.uint8), "original.png")
-        print(self.img.shape)
         for i, mask in enumerate(self.masks):
-            print(mask.shape)
             write_png(torch.from_numpy((self.img.cpu().detach().numpy() * mask * 255).astype(np.uint8)), f"{i}.png")
 
     def find_containing_mask(self, pt_coord):
-        mask_idx = [idx for idx in range(len(self.masks)) if self.masks[idx][pt_coord]]
+        mask_idx = [idx for idx in range(len(self.masks)) if self.masks[idx][0][pt_coord]]
         
         if len(mask_idx) == 0:
             return Exception('Containing mask not found')
