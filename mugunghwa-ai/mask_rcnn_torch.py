@@ -1,10 +1,11 @@
+from PIL import Image
+from torchvision.io import write_png
 from torchvision.models.detection import maskrcnn_resnet50_fpn as mrcnn
-import torch
-from torchvision.io import read_image, write_png
-import time
-import numpy as np
-import cv2
 from typing import Tuple
+import cv2
+import numpy as np
+import time
+import torch
 
 class Segmenter(object):
     def __init__(self):
@@ -47,19 +48,20 @@ class Segmenter(object):
         
         return mask_idx
 
-    # def find_containing_face(self, pt_coord):
-    #     mask_idx = [idx for idx in range(len(self.masks)) if self.masks[idx][pt_coord]]
-    #     mask = self.masks[mask_idx]
-    #     masked_img = np.array(self.img) & mask.transpose(1, 2, 0) * 255
-    #     masked_img = Image.fromarray(masked_img)
+    def find_containing_face(self, pt_coord):
+        mask_idx = self.find_containing_mask(pt_coord)
+        mask = self.masks[mask_idx]
+        img = self.img.numpy().transpose(1, 2, 0)
+        masked_img = img * mask.transpose(1, 2, 0) * 255
+        masked_img = Image.fromarray(masked_img.astype(np.uint8))
         
-    #     from face_detection import FACE
-    #     face = FACE()
-    #     face.img = masked_img
-    #     box, _ = face.detect()
-    #     box_coord = tuple(box[0].tolist())
-    #     crop_face = self.img.crop(box_coord)
-    #     return crop_face
+        from face_detection import FACE
+        face = FACE()
+        face.img = masked_img
+        box, _ = face.detect()
+        box_coord = tuple(box[0].tolist())
+        crop_face = Image.fromarray((img * 255).astype(np.uint8)).crop(box_coord)
+        return crop_face
 
 
 
@@ -71,3 +73,6 @@ if __name__ == "__main__":
     model.save_mask()
     print(f"Took {time.time() - start}")
 
+    pt_coord = (300, 30)
+    face = model.find_containing_face(pt_coord)
+    face.show()
