@@ -14,19 +14,26 @@ class MASK_RCNN(object):
     
     def read_img(self, img_fp:str, img_size:Tuple[int, int]=(400, 400)):
         self.img = Image.open(img_fp).resize(img_size)
+    
+    def set_image_size(self, img_size):
         self.img_size = img_size
         self.width, self.height = img_size
         
     def get_mask(self):
         x = np.asarray(self.img)
         x, _ = data.transforms.presets.rcnn.transform_test(mx.nd.array(x), short=self.width)
-        out = self.net(x) # out = [class, confidence, bboxes, seg masks]
-        classes, scores, bboxes, masks = [item[0].asnumpy() for item in out]
+        classes, scores, bboxes, masks = self.net(x) # out = [class, confidence, bboxes, seg masks]
+        person_mask = (classes.asnumpy()[0] == 0).astype(np.int).flatten().tolist()
+        scores = scores[person_mask].asnumpy()
+        bboxes = bboxes[person_mask].asnumpy()
+        masks = masks[person_mask].asnumpy()
+
+        # classes, scores, bboxes, masks = [item[0].asnumpy() for item in out]
         
-        person_mask = (classes.flatten() == 0).tolist()
-        scores = scores[person_mask]
-        bboxes = bboxes[person_mask]
-        masks = masks[person_mask]
+        # person_mask = (classes.flatten() == 0).tolist()
+        # scores = scores[person_mask]
+        # bboxes = bboxes[person_mask]
+        # masks = masks[person_mask]
 
         self.masks, _ = utils.viz.expand_mask(masks, bboxes, self.img_size, scores)
         # >>> masks.shape
@@ -52,7 +59,7 @@ class MASK_RCNN(object):
         
         return mask_idx
 
-    def save_containing_face(self, pt_coord, out_fp):
+    def find_containing_face(self, pt_coord):
         mask_idx = [idx for idx in range(len(self.masks)) if self.masks[idx][pt_coord]]
         mask = self.masks[mask_idx]
         masked_img = np.array(self.img) & mask.transpose(1, 2, 0) * 255
@@ -64,5 +71,4 @@ class MASK_RCNN(object):
         box, _ = face.detect()
         box_coord = tuple(box[0].tolist())
         crop_face = self.img.crop(box_coord)
-        crop_face.save(out_fp)
-        print(f'crop face image saved at {out_fp}')
+        return crop_face

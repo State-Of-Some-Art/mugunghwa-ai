@@ -19,4 +19,4 @@ m.save_mask('assets/mask.png')
 # Particular mask that contains given point coordinate can be extracted
 pt = (300, 30)
 m.find_containing_mask(pt)
-m.save_containing_face(pt, 'assets/containing_face.png')
+m.find_containing_face(pt)

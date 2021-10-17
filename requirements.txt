@@ -1,3 +1,4 @@
+mxnet
 opencv-python
 imutils
 gluoncv
