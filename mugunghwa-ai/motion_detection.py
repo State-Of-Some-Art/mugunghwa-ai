@@ -32,8 +32,8 @@ def detect_motion(duration: float, cap: cv2.VideoCapture, img_size = (400, 400),
         for c in cnts:
             if cv2.contourArea(c) > threshold:
                 x, y, w, h = cv2.boundingRect(c)
-                cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
-                moved_centers.append((x + w / 2, y + h / 2))
+                # cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
+                moved_centers.append((int(x + w / 2), int(y + h / 2)))
         if len(moved_centers) > 0:
             return moved_centers, frame
         if show:
