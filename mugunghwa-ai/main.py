@@ -1,13 +1,13 @@
 import time
 import cv2
 from motion_detection import detect_motion
-from mask_rcnn import MASK_RCNN
+from mask_rcnn_torch import Segmenter
 from PIL import Image
 
 
 if __name__ == "__main__":
     cap = cv2.VideoCapture(0)
-    m = MASK_RCNN()
+    m = Segmenter()
     
     while True:
         pts, frame = detect_motion(5, cap, show=True)
