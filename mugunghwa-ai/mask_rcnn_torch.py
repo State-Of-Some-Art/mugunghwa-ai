@@ -1,4 +1,5 @@
 from PIL import Image
+from face_detection import FACE
 from torchvision.io import write_png
 from torchvision.models.detection import maskrcnn_resnet50_fpn as mrcnn
 from typing import Tuple
@@ -12,6 +13,7 @@ class Segmenter(object):
         self.is_gpu = torch.cuda.device_count() > 0
         self.net = mrcnn(pretrained=True)
         self.net.eval()
+        self.face = FACE()
         if self.is_gpu:
             self.net.cuda()
     
@@ -35,8 +37,22 @@ class Segmenter(object):
         x = torch.stack([self.img])
         out = self.net(x)[0]
         person_mask = out['labels'] == 1
-        self.scores = out['scores'][person_mask].cpu().detach().numpy()
-        self.masks = out['masks'][person_mask].cpu().detach().numpy()[self.scores > 0.90]
+        score_mask = out['scores'] > 0.90
+        comb_mask = person_mask & score_mask
+
+        labels = out['labels'][comb_mask].cpu().detach().numpy()
+        masks = out['masks'][comb_mask].cpu().detach().numpy()
+        
+        self.labels = np.array(list(range(len(labels))))
+        # instance_masks = np.array([(self.labels[i] + 1) * np.array(masks[i] > 0, dtype=np.int) for i in self.labels])
+        instance_masks = np.array([(self.labels[i] + 1) * np.array(masks[i] > 0.5, dtype=np.int) for i in self.labels], dtype=np.int)
+        
+        self.masks = np.zeros([1, *self.img.shape[1:]], dtype=np.int)
+        # from pdb import set_trace as bp
+        for instance, instance_mask in enumerate(instance_masks):
+            # bp()
+            instance += 1
+            self.masks = np.clip(self.masks + instance_mask, 0, instance, dtype=np.int)
         return self.masks
     
     def save_mask(self):
@@ -50,6 +66,31 @@ class Segmenter(object):
             return -1
         else:
             return mask_idx[0]
+
+    def find_instance_faces(self, instance_mask_list):
+        faces = []
+        src_img = self.img.detach().cpu().numpy().transpose(1, 2, 0)
+
+        for idx in instance_mask_list:
+            if idx == 0:
+                continue
+
+            # Mask current instance
+            instance_mask = (self.masks == idx).transpose(1, 2, 0)
+            masked_img = src_img * instance_mask * 255
+
+            # Extract face from the masked image
+            self.face.img = Image.fromarray(masked_img.astype(np.uint8))
+            print(masked_img.shape)
+            box, _ = self.face.detect()
+            if box is not None:
+                box_coord = tuple(box[0].tolist())
+                crop_face = Image.fromarray((src_img * 255).astype(np.uint8)).crop(box_coord).resize((300, 300))
+                faces.append(crop_face)
+            else:
+                print('face not found')
+
+        return faces
 
     def find_containing_face(self, pt_coord):
         mask_idx = self.find_containing_mask(pt_coord[::-1])

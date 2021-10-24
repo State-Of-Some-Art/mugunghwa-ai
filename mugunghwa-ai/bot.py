@@ -17,19 +17,29 @@ class MugungHwaBot:
                 print(f"Detecting in {i}")
                 time.sleep(1)
 
-            self.detector.start(show=True)
+            self.detector.start()
             
             while True:
-                frame, pts = self.detector.next()
-                if pts is None:
+                motion_mask, src = self.detector.next()
+                if motion_mask is None:
                     break
+                cv2.imshow("mask", motion_mask * 255)
+                cv2.imshow("src", src)
+                cv2.waitKey(10)
+                if np.sum(motion_mask) > 10:
+                    self.model.set_img(src)
+                    instance_mask = self.model.get_mask()
+                    # cv2.imshow("inst", (instance_mask.transpose(1, 2, 0) / 3 * 255).astype(np.uint8))
+                    # cv2.waitKey(10)
+                    instance_moved = np.unique(motion_mask * instance_mask)
 
-                if len(pts) > 0:
-                    print("Movement detected")
-                    self.model.set_img(frame)
-                    self.model.get_mask()
-                    for pt in pts:
-                        face = self.model.find_containing_face(pt)
-                        if face is not None:
-                            face = cv2.cvtColor(np.array(face), cv2.COLOR_RGB2BGR)
-                            face = cv2.resize(face, (400, 400))
+                    faces = self.model.find_instance_faces(instance_moved)
+                    if len(faces) > 0:
+                        face_img = np.hstack(faces)
+                        cv2.imshow('faces', cv2.cvtColor(face_img, cv2.COLOR_RGB2BGR))
+                        cv2.waitKey(10)
+                    else:
+                        cv2.imshow('faces', np.zeros((300, 300, 1)))
+                        cv2.waitKey(10)
+
+
