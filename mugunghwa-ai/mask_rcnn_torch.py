@@ -45,7 +45,6 @@ class Segmenter(object):
             write_png(torch.from_numpy((self.img.cpu().detach().numpy() * mask * 255).astype(np.uint8)), f"{i}.png")
 
     def find_containing_mask(self, pt_coord):
-        print(pt_coord)
         mask_idx = [idx for idx in range(len(self.masks)) if self.masks[idx][0][pt_coord]]
         if len(mask_idx) == 0:
             return -1
@@ -56,10 +55,10 @@ class Segmenter(object):
         mask_idx = self.find_containing_mask(pt_coord[::-1])
 
         if mask_idx < 0:
-            print("COuld not find face")
+            print("Could not find face")
             return None
         mask = self.masks[mask_idx]
-        img = self.img.numpy().transpose(1, 2, 0)
+        img = self.img.cpu().numpy().transpose(1, 2, 0)
         masked_img = img * mask.transpose(1, 2, 0) * 255
         masked_img = Image.fromarray(masked_img.astype(np.uint8))
         
