@@ -81,14 +81,11 @@ class Segmenter(object):
 
             # Extract face from the masked image
             self.face.img = Image.fromarray(masked_img.astype(np.uint8))
-            print(masked_img.shape)
             box, _ = self.face.detect()
             if box is not None:
                 box_coord = tuple(box[0].tolist())
                 crop_face = Image.fromarray((src_img * 255).astype(np.uint8)).crop(box_coord).resize((300, 300))
                 faces.append(crop_face)
-            else:
-                print('face not found')
 
         return faces
 

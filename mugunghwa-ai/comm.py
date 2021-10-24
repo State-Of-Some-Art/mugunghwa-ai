@@ -1,17 +1,35 @@
 import socket
+from threading import Thread
+import time
 
-HOST = '127.0.0.1'
-PORT = 65432
+class SocketComm:
+    def __init__(self, host='127.0.0.1', port=65432):
+        self.host = host
+        self.port = port
+        self.conn = None
+        self.worker = None
+        self.is_running = False
 
-with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-    s.bind((HOST, PORT))
-    s.listen()
+    def start(self):
+        self.is_running = True
+        self.worker = Thread(target=self.connect, daemon=True)
+        self.worker.start()
 
-    conn, address = s.accept()
+    def send(self, data):
+        self.conn.sendall(data)
 
-    with conn:
-        data = conn.recv(1024)
-        print(data)
-        while True:
-            s = input()
-            conn.sendall(s.encode())
+    def recv(self, size):
+        return self.conn.recv(size)
+
+    def stop(self):
+        self.is_running = False
+
+    def connect(self):
+        print("Waiting for unity connection...")
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.bind((self.host, self.port))
+            s.listen()
+            self.conn, _ = s.accept()
+            print("Connected to Unity")
+            while self.is_running:
+                time.sleep(0.1)
