@@ -13,11 +13,7 @@ from pdb import set_trace as bp
 class Segmenter(object):
     def __init__(self):
         self.net = mrcnn(pretrained=True)
-        # self.face = FaceNet()
-
         self.net.eval()
-        # self.face.mtcnn.eval()
-        # self.face.resnet.eval()
 
         self.is_gpu = torch.cuda.device_count() > 0
         if self.is_gpu:

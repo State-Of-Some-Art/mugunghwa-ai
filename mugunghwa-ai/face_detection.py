@@ -16,6 +16,11 @@ class FaceNet(object):
         self.mtcnn.eval()
         self.resnet.eval()
 
+        self.is_gpu = torch.cuda.device_count() > 0
+        if self.is_gpu:
+            # self.mtcnn.cuda()
+            self.resnet.cuda
+
         self.inst_embs_log = []
         self.face_log = []
     

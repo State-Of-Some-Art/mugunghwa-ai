@@ -51,10 +51,10 @@ class MugungHwaBot:
                     for instance_mask in instance_mask_list:
                         masked_img = (src * instance_mask).astype(np.uint8)
                         self.facenet.set_img(cv2.cvtColor(masked_img, cv2.COLOR_BGR2RGB))
-                        face_log = self.facenet.update_face_log()
+                        face_log = self.facenet.update_face_log(thres=1.5)
                     
                     if len(face_log) > 0:
-                        face_log = np.vstack(face_log)
+                        face_log = np.hstack(face_log)
                         cv2.imshow('Face log', cv2.cvtColor(face_log, cv2.COLOR_RGB2BGR))
                         cv2.waitKey(10)
 
