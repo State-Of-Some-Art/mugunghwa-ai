@@ -1,84 +1,76 @@
 from facenet_pytorch import MTCNN, InceptionResnetV1
-from PIL import Image, ImageDraw
-import torch
-import facenet_pytorch
+from PIL import Image
 import numpy as np
+from convert import *
 from pdb import set_trace as bp
 
-class FACE(object):
+class FaceNet(object):
     """
     https://github.com/timesler/facenet-pytorch
+    Provides face recognition feature
     """
     def __init__(self):
         self.mtcnn = MTCNN(keep_all=True)
         self.resnet = InceptionResnetV1(pretrained='vggface2')
-        self.instance_name_dict = None
-        self.instance_embeddings_log = []
+
+        self.mtcnn.eval()
+        self.resnet.eval()
+
+        self.inst_embs_log = []
         self.face_log = []
     
     def read_img(self, img_fp:str):
         self.img = Image.open(img_fp)
-
-    def detection(self):
-        self.boxes, self.probs = self.mtcnn.detect(self.img)
-        return self.boxes, self.probs
     
-    def recognition(self, thres=1.0):
-        # recog_faces is a list of cropped faces
+    def set_img(self, src):
+        # src is a (W, H, C) np.ndarray
+        self.img = Image.fromarray(src)
+    
+    def reset_log(self):
+        self.inst_embs_log = []
+        self.face_log = []    
+    
+    def update_face_log(self, thres=1.0):
+        # recog_faces is a (N, C, H, W) tensor of cropped faces
+        # C = 3, H = W = 160 by default
         recog_faces = self.mtcnn(self.img)
         if recog_faces is not None:
-            recog_faces = [r for r in recog_faces]
+            # curr_inst_embs is a list of 512-dimensional feature vector of each instance
+            curr_inst_embs = self.resnet(recog_faces).detach().cpu().numpy()
 
-            # instance_embedding_list is a list of 512-dimensional feature vector of each instance
-            aligned = torch.stack(recog_faces)
-            instance_embeddings = self.resnet(aligned).detach().cpu().numpy()
-            instance_embeddings = [e for e in instance_embeddings]
-
-            # compare with self.embeddings to see if the instance is already present
-            if len(self.instance_embeddings_log) == 0:
-                # self.instance_embeddings_log = instance_embeddings
-                
-                # for 
-                # recog_face = recog_faces[idx].detach().cpu().numpy().transpose(1, 2, 0)
-                # recog_face = ((recog_face + 1) / 2 * 255).astype(np.uint8)
-                # recog_face = Image.fromarray(recog_face)
-                # self.face_log.append(recog_face)
-                for idx, instance_embedding in enumerate(instance_embeddings):
-                    self.instance_embeddings_log.append(instance_embedding)
-                    recog_face = recog_faces[idx].detach().cpu().numpy().transpose(1, 2, 0)
-                    recog_face = ((recog_face + 1) / 2 * 255).astype(np.uint8)
-                    recog_face = Image.fromarray(recog_face)
+            # If instance embeddings log is empty, append instance embedding and face images to
+            # corresponding lists
+            if len(self.inst_embs_log) == 0:
+                for idx, curr_inst_emb in enumerate(curr_inst_embs):
+                    self.inst_embs_log.append(curr_inst_emb)
+                    
+                    recog_face = recog_faces[idx].detach().cpu().numpy()
+                    recog_face = CHW2HWC(recog_face)
+                    recog_face = to_8bit(recog_face, min=-1, max=1)
+                    # recog_face = Image.fromarray(recog_face)
                     self.face_log.append(recog_face)
-
-
+            # Else, compare with instance embeddings log to see if the instance is already present
             else:
-                for idx, instance_embedding in enumerate(instance_embeddings):
-                    dist = [np.linalg.norm(self.instance_embeddings_log[idx] - instance_embedding) for idx in range(len(self.instance_embeddings_log))]
+                for idx, curr_inst_emb in enumerate(curr_inst_embs):
+                    dist = [np.linalg.norm(self.inst_embs_log[idx] - curr_inst_emb) for idx in range(len(self.inst_embs_log))]
                     if np.min(dist) > thres:
                         print('new guy')
-                        self.instance_embeddings_log.append(instance_embedding)
-                        recog_face = recog_faces[idx].detach().cpu().numpy().transpose(1, 2, 0)
-                        recog_face = ((recog_face + 1) / 2 * 255).astype(np.uint8)
-                        recog_face = Image.fromarray(recog_face)
-                        self.face_log.append(recog_face)
-        return self.face_log
-    
-    def draw_bbox(self, out_fp='bbox_out.png'):
-        if not self.boxes:
-            raise Exception('self.detect not called')
+                        self.inst_embs_log.append(curr_inst_emb)
 
-        img_draw = self.img.copy()
-        draw = ImageDraw.Draw(img_draw)
-        for box in self.boxes:
-            draw.rectangle(box.tolist(), width=5)
-        img_draw.save(out_fp)
-    
+                        recog_face = recog_faces[idx].detach().cpu().numpy()
+                        recog_face = CHW2HWC(recog_face)
+                        recog_face = to_8bit(recog_face, min=-1, max=1)
+                        # recog_face = Image.fromarray(recog_face)
+                        self.face_log.append(recog_face)
+        return self.face_log    
 
 if __name__=="__main__":
-    face = FACE()
-    face.read_img('img1.jpg')
-    face.detection()
-    embeddings = face.recognition()
+    face = FaceNet()
+    face.read_img('img3.jpg')
+    face.update_face_log(thres=2.0)
 
     face.read_img('img2.jpg')
-    face.recognition()
+    face.update_face_log()
+
+    face_img = np.hstack(face.face_log)
+    Image.fromarray(face_img).show()
