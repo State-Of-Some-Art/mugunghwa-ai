@@ -10,12 +10,21 @@ import torch
 
 class Segmenter(object):
     def __init__(self):
-        self.is_gpu = torch.cuda.device_count() > 0
         self.net = mrcnn(pretrained=True)
-        self.net.eval()
         self.face = FACE()
+
+        self.net.eval()
+        self.face.mtcnn.eval()
+        self.face.resnet.eval()
+
+        self.is_gpu = torch.cuda.device_count() > 0
         if self.is_gpu:
             self.net.cuda()
+        
+    def reset(self):
+        self.face.instance_name_dict = None
+        self.face.instance_embeddings_log = []
+        self.face.face_log = []
     
     def set_img(self, src, img_size: Tuple[int, int]=(400, 400)):
         self.img = cv2.resize(cv2.cvtColor(src, cv2.COLOR_BGR2RGB), img_size)
@@ -44,13 +53,10 @@ class Segmenter(object):
         masks = out['masks'][comb_mask].cpu().detach().numpy()
         
         self.labels = np.array(list(range(len(labels))))
-        # instance_masks = np.array([(self.labels[i] + 1) * np.array(masks[i] > 0, dtype=np.int) for i in self.labels])
         instance_masks = np.array([(self.labels[i] + 1) * np.array(masks[i] > 0.5, dtype=np.int) for i in self.labels], dtype=np.int)
         
         self.masks = np.zeros([1, *self.img.shape[1:]], dtype=np.int)
-        # from pdb import set_trace as bp
         for instance, instance_mask in enumerate(instance_masks):
-            # bp()
             instance += 1
             self.masks = np.clip(self.masks + instance_mask, 0, instance, dtype=np.int)
         return self.masks
@@ -81,14 +87,9 @@ class Segmenter(object):
 
             # Extract face from the masked image
             self.face.img = Image.fromarray(masked_img.astype(np.uint8))
-            print(masked_img.shape)
-            box, _ = self.face.detect()
-            if box is not None:
-                box_coord = tuple(box[0].tolist())
-                crop_face = Image.fromarray((src_img * 255).astype(np.uint8)).crop(box_coord).resize((300, 300))
-                faces.append(crop_face)
-            else:
-                print('face not found')
+            # box, _ = self.face.detection()
+            face_list = self.face.recognition(thres=1.2)
+            faces = [np.array(f) for f in face_list]
 
         return faces
 
@@ -106,7 +107,7 @@ class Segmenter(object):
         from face_detection import FACE
         face = FACE()
         face.img = masked_img
-        box, _ = face.detect()
+        box, _ = face.detection()
         if box is None:
             return None
         box_coord = tuple(box[0].tolist())

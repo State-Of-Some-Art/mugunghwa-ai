@@ -4,7 +4,7 @@ from mask_rcnn_torch import Segmenter
 # Create face detection instance
 face = FACE()
 face.read_img('assets/img1.jpg')
-boxes, _ = face.detect()
+boxes, _ = face.detection()
 
 # Create mask-rcnn instance
 m = Segmenter()

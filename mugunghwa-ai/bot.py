@@ -18,6 +18,9 @@ class MugungHwaBot:
                 time.sleep(1)
 
             self.detector.start()
+            self.model.reset()
+            cv2.imshow('faces', np.zeros((300, 300, 1)))
+            cv2.waitKey(10)
             
             while True:
                 motion_mask, src = self.detector.next()
@@ -29,11 +32,12 @@ class MugungHwaBot:
                 if np.sum(motion_mask) > 10:
                     self.model.set_img(src)
                     instance_mask = self.model.get_mask()
-                    # cv2.imshow("inst", (instance_mask.transpose(1, 2, 0) / 3 * 255).astype(np.uint8))
-                    # cv2.waitKey(10)
+                    cv2.imshow("inst", (instance_mask.transpose(1, 2, 0) / 3 * 255).astype(np.uint8))
+                    cv2.waitKey(10)
                     instance_moved = np.unique(motion_mask * instance_mask)
 
                     faces = self.model.find_instance_faces(instance_moved)
+
                     if len(faces) > 0:
                         face_img = np.hstack(faces)
                         cv2.imshow('faces', cv2.cvtColor(face_img, cv2.COLOR_RGB2BGR))
