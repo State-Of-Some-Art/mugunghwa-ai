@@ -9,10 +9,10 @@ import numpy as np
 LINES = ["MugungHwa", "GGochi", "PeeUt", "SeupNi", "Da!"]
 
 if __name__ == "__main__":
-    FRONT = cv2.imread("assets/FRONT.png")
-    BACK = cv2.imread("assets/BACK.png")
-    CATCH = cv2.imread("assets/CATCH.png")
-    LOGO = cv2.imread("assets/logo.png")
+    FRONT = cv2.imread("src/FRONT.png")
+    BACK = cv2.imread("src/BACK.png")
+    CATCH = cv2.imread("src/CATCH.png")
+    LOGO = cv2.imread("src/logo.png")
 
     cv2.imshow("main", LOGO)
     cv2.imshow("motion", LOGO)
