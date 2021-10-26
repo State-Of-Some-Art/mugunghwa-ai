@@ -23,9 +23,8 @@ class MugungHwaBot:
     def start(self):
         while True:
             self.conn.send(b'{"c":1}')
-            for i in range(6, 0, -1):
-                print(f"Detecting in {i}")
-                time.sleep(1)
+            print("Waiting...")
+            print(self.conn.recv(1024))
             self.conn.send(b'{"c":0}')
             self.detector.start()
             self.facenet.reset_log()
