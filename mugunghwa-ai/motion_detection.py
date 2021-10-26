@@ -40,9 +40,12 @@ class MotionDetector:
                 self.mask = calc_diff(curr_frame, prev_frame)
 
             prev_frame = curr_frame.copy()
+            time.sleep(0.05)
         
     def reset(self):
         self.start_time = time.time()
+        while self.src is None:
+            time.sleep(0.1)
             
     def start(self, duration = 5, img_size = (400, 400)):
         self.worker = Thread(target=self.run, args=(duration, img_size,), daemon=True)
