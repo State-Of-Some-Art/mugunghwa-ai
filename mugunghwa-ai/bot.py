@@ -14,19 +14,17 @@ class MugungHwaBot:
         self.segmenter = Segmenter()
         self.facenet = FaceNet()
         self.detector = MotionDetector()
-        # self.conn = SocketComm()
-        # self.conn.start()
-        # while self.conn.conn is None:
-        #     time.sleep(0.1)
+        self.conn = SocketComm()
+        self.conn.start()
         print("Mugungwha bot is initialized")
 
     def start(self):
         while True:
-            # self.conn.send(b'{"c":1}')
-            # for i in range(6, 0, -1):
-            #     print(f"Detecting in {i}")
-            #     time.sleep(1)
-            # self.conn.send(b'{"c":0}')
+            self.conn.send(b'{"c":1}')
+            for i in range(6, 0, -1):
+                print(f"Detecting in {i}")
+                time.sleep(1)
+            self.conn.send(b'{"c":0}')
             self.detector.start()
             self.facenet.reset_log()
 
@@ -41,7 +39,8 @@ class MugungHwaBot:
                 cv2.imshow("src", src)
                 cv2.waitKey(10)
                 if np.sum(motion_mask) > 1000:
-                    # self.conn.send(b'{"c":2}')
+                    print("Something moved!")
+                    self.conn.send(b'{"c":2}')
                     self.segmenter.set_img(src)
                     instance_mask_combined, instance_mask_list = self.segmenter.get_instance_mask_combined()
 
@@ -54,6 +53,13 @@ class MugungHwaBot:
                         face_log = self.facenet.update_face_log(thres=1.5)
                     
                     if len(face_log) > 0:
+                        face_strings = []
+                        for face in face_log:
+                            _, b = cv2.imencode('.png', cv2.cvtColor(np.array(face), cv2.COLOR_RGB2BGR))
+                            face_strings.append(b64encode(b).decode())
+                        packet = {"c": 3, "imgs": face_strings}
+                        self.conn.send(json.dumps(packet).encode())
+                        print(face_log[0].shape)
                         face_log = np.hstack(face_log)
                         cv2.imshow('Face log', cv2.cvtColor(face_log, cv2.COLOR_RGB2BGR))
                         cv2.waitKey(10)

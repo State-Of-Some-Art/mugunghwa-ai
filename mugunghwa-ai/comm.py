@@ -14,6 +14,8 @@ class SocketComm:
         self.is_running = True
         self.worker = Thread(target=self.connect, daemon=True)
         self.worker.start()
+        while self.conn is None:
+            time.sleep(0.1)
 
     def send(self, data):
         self.conn.sendall(data)
@@ -33,3 +35,14 @@ class SocketComm:
             print("Connected to Unity")
             while self.is_running:
                 time.sleep(0.1)
+
+
+if __name__ == "__main__":
+    comm = SocketComm()
+    comm.start()
+
+    b = comm.recv(1024)
+    print(b)
+    while True:
+        s = input("Enter command: ")
+        comm.send(s.encode())
