@@ -8,3 +8,16 @@ Mugunghwa AI is an artificial intelligence that operates a "Mugunghwa-game" feat
 $ pip install -r requirements.txt
 ```
 and install appropriate version of [Pytorch](https://pytorch.org/get-started/locally/).
+
+## Run
+------
+
+To check options for the program, run
+```
+$ python mugungwha-ai/main.py -h
+```
+
+For a basic computer vision server, run
+```
+$ python mugungwha-ai/main.py
+```
