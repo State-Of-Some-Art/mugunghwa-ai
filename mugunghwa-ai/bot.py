@@ -14,6 +14,7 @@ class MugungHwaBot:
         self.segmenter = Segmenter()
         self.facenet = FaceNet()
         self.detector = MotionDetector()
+        self.detector.start()
         self.conn = SocketComm(host=host, port=port)
         self.verbose = verbose
         self.motion_threshold = motion_threshold
@@ -26,7 +27,7 @@ class MugungHwaBot:
             print("Waiting...")
             print(self.conn.recv(1024).decode())
             self.conn.send(b'{"c":0}')
-            self.detector.start()
+            self.detector.reset()
             self.facenet.reset_log()
             
             if self.verbose:

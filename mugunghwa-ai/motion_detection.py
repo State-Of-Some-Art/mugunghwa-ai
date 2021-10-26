@@ -22,30 +22,31 @@ class MotionDetector:
         self.cap = cv2.VideoCapture(0)
         self.mask = None
         self.src = None
+        self.start_time = 0
 
     def run(self, duration, img_size):
-        start_time = time.time()
         ret, prev_frame = self.cap.read()
         prev_frame = cv2.resize(smooth_frame(prev_frame), img_size)    
 
         while ret:
             ret, frame = self.cap.read()
-            self.src = cv2.resize(frame, img_size)
-            curr_frame = smooth_frame(self.src)
-            self.mask = calc_diff(curr_frame, prev_frame)
+            frame = cv2.resize(frame, img_size)
+            curr_frame = smooth_frame(frame)
+        
+            if time.time() - self.start_time > duration:
+                self.src, self.mask = None, None
+            else:
+                self.src = frame
+                self.mask = calc_diff(curr_frame, prev_frame)
 
             prev_frame = curr_frame.copy()
-
-            if time.time() - start_time > duration:
-                break
-
-        self.src, self.mask = None, None
+        
+    def reset(self):
+        self.start_time = time.time()
             
     def start(self, duration = 5, img_size = (400, 400)):
         self.worker = Thread(target=self.run, args=(duration, img_size,), daemon=True)
         self.worker.start()
-        while self.src is None:
-            time.sleep(0.1)
 
     def next(self):
         return self.mask, self.src
