@@ -42,9 +42,10 @@ class MotionDetector:
         self.src, self.mask = None, None
             
     def start(self, duration = 5, img_size = (400, 400)):
-        self.src, self.mask = np.zeros(img_size), np.zeros(img_size)
         self.worker = Thread(target=self.run, args=(duration, img_size,), daemon=True)
         self.worker.start()
+        while self.src is None:
+            time.sleep(0.1)
 
     def next(self):
         return self.mask, self.src

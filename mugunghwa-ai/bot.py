@@ -24,7 +24,7 @@ class MugungHwaBot:
         while True:
             self.conn.send(b'{"c":1}')
             print("Waiting...")
-            print(self.conn.recv(1024))
+            print(self.conn.recv(1024).decode())
             self.conn.send(b'{"c":0}')
             self.detector.start()
             self.facenet.reset_log()
