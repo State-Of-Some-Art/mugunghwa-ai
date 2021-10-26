@@ -1,44 +1,23 @@
-import time
-import cv2
-from motion_detection import detect_motion
-from mask_rcnn_torch import Segmenter
-from PIL import Image
-import numpy as np
-
-
-LINES = ["무궁화", "꽃이", "피었", "습니", "다!"]
+from bot import MugungHwaBot
+import argparse
 
 if __name__ == "__main__":
-    cap = cv2.VideoCapture(0)
-    model = Segmenter()
 
-    print("Ready to play some game?")
-    time.sleep(3)
-    while True:
-        pts, frame = detect_motion(5, cap, show=True)
-        if pts is None:
-            break
-        else:
-            if len(pts) > 0:
-                print("Somebody moved!")
-                model.set_img(frame)
-                model.get_mask()
-                print(pts)
-                for pt in pts:
-                    print(pt)
-                    face = model.find_containing_face(pt)
-                    if face is not None:
-                        face = cv2.cvtColor(np.array(face), cv2.COLOR_RGB2BGR)
-                        face = cv2.resize(face, (400, 400))
-                        cv2.imshow("face", face)
-                        cv2.waitKey(10)
-            else:
-                print("Nobody moved")
-        
+    parser = argparse.ArgumentParser(description='Mugungwhat Game AI')
+    parser.add_argument('--host', default='127.0.0.1', type=str,
+                        help='Host for tcp connection')
+    
+    parser.add_argument('--port', default=65432, type=int,
+                        help='Port for tcp connection')
 
-        for i in range(5):
-            print(LINES[i])
-            time.sleep(1)
+    parser.add_argument('-t', '--threshold', default=1000, type=int,
+                        help='Motion Sensitivity threshold')
 
-    cap.release()
-    cv2.destroyAllWindows()
+    parser.add_argument('-v', '--verbose', action='store_true',
+                        help='Show processing images on screen')
+    
+    args = parser.parse_args()
+
+    m_bot = MugungHwaBot(verbose=args.verbose, motion_threshold=args.threshold, 
+                        host=args.host, port=args.port)
+    m_bot.start()
