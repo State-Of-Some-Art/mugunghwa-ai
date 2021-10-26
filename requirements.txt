@@ -1,5 +1,3 @@
-mxnet
 opencv-python
 imutils
-gluoncv
 facenet-pytorch
