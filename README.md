@@ -11,13 +11,17 @@ and install appropriate version of [Pytorch](https://pytorch.org/get-started/loc
 
 ## Run
 ------
+First, download Mugungwha game from [here](https://k2sebeom.itch.io/mugungwha-cv).
+Execute MugungWhaClient.exe
 
-To check options for the program, run
-```
-$ python mugungwha-ai/main.py -h
-```
-
-For a basic computer vision server, run
+Run
 ```
 $ python mugungwha-ai/main.py
+```
+
+Once it says, "Waiting for Unity Connection," press "Game Start" button.
+
+To check for more options, run
+```
+$ python mugungwha-ai/main.py -h
 ```
