@@ -23,7 +23,6 @@ class MugungHwaBot:
     def start(self):
         while True:
             self.conn.send(b'{"c":1}')
-            print("Waiting...")
             print(self.conn.recv(1024))
             self.conn.send(b'{"c":0}')
             self.detector.start()
