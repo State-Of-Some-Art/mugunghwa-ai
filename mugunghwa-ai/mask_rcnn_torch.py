@@ -1,5 +1,4 @@
 from PIL import Image
-from face_detection import FaceNet
 from torchvision.io import write_png
 from torchvision.models.detection import maskrcnn_resnet50_fpn as mrcnn
 from typing import Tuple
@@ -8,7 +7,6 @@ import numpy as np
 import time
 import torch
 from convert import *
-from pdb import set_trace as bp
 
 class Segmenter(object):
     def __init__(self):
@@ -18,11 +16,6 @@ class Segmenter(object):
         self.is_gpu = torch.cuda.device_count() > 0
         if self.is_gpu:
             self.net.cuda()
-        
-    # def reset(self):
-    #     self.face.instance_name_dict = None
-    #     self.face.inst_embs_log = []
-    #     self.face.face_log = []
     
     def set_img(self, src, img_size: Tuple[int, int]=(400, 400)):
         self.img = cv2.resize(cv2.cvtColor(src, cv2.COLOR_BGR2RGB), img_size)
@@ -35,10 +28,6 @@ class Segmenter(object):
         self.img = torch.from_numpy(self.img.transpose(2, 0, 1)) / 255
         if self.is_gpu:
             self.img = self.img.cuda()
-    
-    def set_image_size(self, img_size):
-        self.img_size = img_size
-        self.width, self.height = img_size
         
     def get_instance_mask_list(self):
         # instance_mask_list is a list of binary mask for each instance
@@ -56,7 +45,6 @@ class Segmenter(object):
         self.instance_mask_list = [CHW2HWC(np.array(masks[i] > 0.5, dtype=np.int32)) for i in self.labels]
         
         return self.instance_mask_list
-        
     
     def get_instance_mask_combined(self):
         # instance_mask_combined is a single instance mask

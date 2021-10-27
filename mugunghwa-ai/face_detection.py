@@ -31,9 +31,9 @@ class FaceNet(object):
         # src is a (W, H, C) np.ndarray
         self.img = Image.fromarray(src)
     
-    def reset_log(self):
+    def reset(self):
         self.inst_embs_log = []
-        self.face_log = []    
+        self.face_log = []
     
     def update_face_log(self, new_face_threshold):
         # recog_faces is a (N, C, H, W) tensor of cropped faces

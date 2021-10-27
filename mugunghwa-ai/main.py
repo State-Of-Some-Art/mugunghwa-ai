@@ -14,13 +14,17 @@ if __name__ == "__main__":
                         help='Motion Sensitivity threshold')
     parser.add_argument('-f', '--new_face_threshold', default=1.0, type=float,
                         help='New Face threshold')
+    parser.add_argument('-p', '--pixel_count_threshold', default=300.0, type=float,
+                        help='Number of pixels of motion detection threshold')
 
     parser.add_argument('-v', '--verbose', action='store_true',
                         help='Show processing images on screen')
     
     args = parser.parse_args()
 
-    m_bot = MugungHwaBot(verbose=args.verbose, motion_threshold=args.threshold,
+    m_bot = MugungHwaBot(verbose=args.verbose,
+                        motion_threshold=args.motion_threshold,
+                        pixel_count_threshold=args.pixel_count_threshold,
                         new_face_threshold=args.new_face_threshold,
                         host=args.host, port=args.port)
     m_bot.start()
