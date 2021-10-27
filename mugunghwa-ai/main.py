@@ -14,7 +14,7 @@ if __name__ == "__main__":
                         help='Motion Sensitivity threshold')
     parser.add_argument('-f', '--new_face_threshold', default=1.0, type=float,
                         help='New Face threshold')
-    parser.add_argument('-p', '--pixel_count_threshold', default=300.0, type=float,
+    parser.add_argument('-p', '--pixel_count_threshold', default=500.0, type=float,
                         help='Number of pixels of motion detection threshold')
 
     parser.add_argument('-v', '--verbose', action='store_true',
