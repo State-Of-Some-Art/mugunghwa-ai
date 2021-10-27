@@ -35,7 +35,7 @@ class FaceNet(object):
         self.inst_embs_log = []
         self.face_log = []    
     
-    def update_face_log(self, thres=1.0):
+    def update_face_log(self, new_face_threshold):
         # recog_faces is a (N, C, H, W) tensor of cropped faces
         # C = 3, H = W = 160 by default
         recog_faces = self.mtcnn(self.img)
@@ -58,7 +58,7 @@ class FaceNet(object):
             else:
                 for idx, curr_inst_emb in enumerate(curr_inst_embs):
                     dist = [np.linalg.norm(self.inst_embs_log[idx] - curr_inst_emb) for idx in range(len(self.inst_embs_log))]
-                    if np.min(dist) > thres:
+                    if np.min(dist) > new_face_threshold:
                         print('new guy')
                         self.inst_embs_log.append(curr_inst_emb)
 
@@ -72,7 +72,7 @@ class FaceNet(object):
 if __name__=="__main__":
     face = FaceNet()
     face.read_img('img3.jpg')
-    face.update_face_log(thres=2.0)
+    face.update_face_log(new_face_threshold=2.0)
 
     face.read_img('img2.jpg')
     face.update_face_log()

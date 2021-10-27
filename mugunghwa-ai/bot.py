@@ -10,14 +10,15 @@ from base64 import b64encode
 
 
 class MugungHwaBot:
-    def __init__(self, verbose=False, motion_threshold=1000, host='127.0.0.1', port=65432):
+    def __init__(self, verbose=False, motion_threshold=1000, new_face_threshold=1.0, host='127.0.0.1', port=65432):
         self.segmenter = Segmenter()
         self.facenet = FaceNet()
         self.detector = MotionDetector()
-        self.detector.start()
         self.conn = SocketComm(host=host, port=port)
+        self.detector.start()
         self.verbose = verbose
         self.motion_threshold = motion_threshold
+        self.new_face_threshold = new_face_threshold
         self.conn.start()
         print("Mugungwha bot is initialized")
 
@@ -54,7 +55,7 @@ class MugungHwaBot:
                     for instance_mask in instance_mask_list:
                         masked_img = (src * instance_mask).astype(np.uint8)
                         self.facenet.set_img(cv2.cvtColor(masked_img, cv2.COLOR_BGR2RGB))
-                        face_log = self.facenet.update_face_log(thres=1.5)
+                        face_log = self.facenet.update_face_log(new_face_threshold=self.new_face_threshold)
                     
                     if len(face_log) > 0:
                         face_strings = []
