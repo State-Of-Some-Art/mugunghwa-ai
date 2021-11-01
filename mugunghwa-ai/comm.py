@@ -14,6 +14,7 @@ class SocketComm:
         self.is_running = True
         self.worker = Thread(target=self.connect, daemon=True)
         self.worker.start()
+        print("Waiting for Unity Connection...")
         while self.conn is None:
             time.sleep(0.1)
 
