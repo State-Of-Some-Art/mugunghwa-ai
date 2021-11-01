@@ -74,7 +74,7 @@ class MugungHwaBot:
                     count_list = count_list[instance_list != 0]
                     instance_list = instance_list[instance_list != 0]
                     instance_moved_list = instance_list[count_list > self.pixel_count_threshold]
-
+                    face_log = []
                     # Get corresponding face
                     for idx, instance_mask in enumerate(instance_mask_list):
                         instance = idx + 1
