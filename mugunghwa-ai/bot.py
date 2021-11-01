@@ -17,6 +17,7 @@ class MugungHwaBot:
         self.conn = SocketComm(host=host, port=port)
         self.verbose = verbose
         self.motion_threshold = motion_threshold
+        print("Waiting for unity connection...")
         self.conn.start()
         print("Mugungwha bot is initialized")
 

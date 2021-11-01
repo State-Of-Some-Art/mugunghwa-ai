@@ -27,7 +27,6 @@ class SocketComm:
         self.is_running = False
 
     def connect(self):
-        print("Waiting for unity connection...")
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.bind((self.host, self.port))
             s.listen()
